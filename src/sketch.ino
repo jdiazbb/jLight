@@ -467,5 +467,5 @@ float readTempSensor(DeviceAddress sensor)
 // ------------------------------------------------------
 void softReset()
 {
-	asm volatile ("  jmp 0");
+   asm volatile ("  jmp 0");
 }

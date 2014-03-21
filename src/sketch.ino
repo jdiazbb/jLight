@@ -63,25 +63,28 @@ int			lecturas_erroneas = 	0;
 // ------------------------------------------------------
 void setup()
 {
+  // Desactivamos el watchdog
   wdt_disable();
 
-  int i=0;
-
+  // Inicializamos la gestion del consumo de corriente
   consumo=0;
   pinMode(kPIN_SENSOR,INPUT);
 
-  for(i=0;i<3;i++)
+  // Inicializamos el estado de las farolas
+  for(int i=0;i<3;i++)
   {
      estado_farola[i]=kAPAGADA;
      pinMode(pin_farola[i],OUTPUT);
      digitalWrite(pin_farola[i],estado_farola[i]); //Apagamos las farolas al iniciar
   }
 
+  // Inicializamos el buffer donde leeremos la peticiones HTTP
   num_lineas=0;
   for(pos=0;pos<kBUFFER_SIZE;pos++)
      buffer[pos]=0;
   pos=0;
 
+  // Inicializamos la sonda de temperatura, el puerto serie, y el servidor web
   temp.begin();
   temp.setResolution(direccion_sensor_temp,12);
 
@@ -90,6 +93,7 @@ void setup()
   Ethernet.begin(mac,ip,gateway,subnet);
   server.begin();
 
+  // Activamos el watchdog, con un timeout de 8 segundos
   wdt_enable(WDTO_8S);
 }
 
@@ -467,5 +471,5 @@ float readTempSensor(DeviceAddress sensor)
 // ------------------------------------------------------
 void softReset()
 {
-   asm volatile ("  jmp 0");
+	asm volatile ("  jmp 0");
 }

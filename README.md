@@ -1,4 +1,4 @@
 jLight
 ======
 
-Control de la iluminacion exterior
+Modulo de control de la iluminacion exterior del sistema JDomo

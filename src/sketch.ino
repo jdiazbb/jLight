@@ -28,7 +28,7 @@ char 			buffer[kBUFFER_SIZE];
 // Control de consumo
 // ------------------------------------------------------
 float			average = 		0.0;
-int			num_samples=		100;
+int			num_samples =		100;
 #define 		kCONSUMO_NULO 		(1023/2)   //Valor del ACS712 que indica consumo 0
 #define 		kTOLERANCIA 		5	   //Diferencia con el consumo nulo a partir de la cual consideramos que se esta consumiendo algo
 #define			kPIN_SENSOR 		16	   //Pines para los sensores de corriente ACS712
@@ -46,8 +46,8 @@ int			estado_farola[3] = 	{kAPAGADA,kAPAGADA,kAPAGADA};   // Estados iniciales d
 // ------------------------------------------------------
 // Temperatura
 // ------------------------------------------------------
-#define 		PIN_ONEWIRE 9
-OneWire 		oneWire(PIN_ONEWIRE);
+#define 		kPIN_ONEWIRE 9
+OneWire 		oneWire(kPIN_ONEWIRE);
 DallasTemperature 	temp(&oneWire);
 DeviceAddress 		direccion_sensor_temp = {0x28, 0xA6, 0x0A, 0xEA, 0x03, 0x00, 0x00, 0xFB};
 

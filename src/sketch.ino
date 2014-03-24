@@ -8,6 +8,8 @@
 #include <avr/wdt.h>
 
 
+//#define DEBUG
+
 // ------------------------------------------------------
 // Configuracion de red
 // ------------------------------------------------------
@@ -28,9 +30,9 @@ char 			buffer[kBUFFER_SIZE];
 // Control de consumo
 // ------------------------------------------------------
 float			average = 		0.0;
-int			num_samples =		100;
+int			num_samples=		100;
 #define 		kCONSUMO_NULO 		(1023/2)   //Valor del ACS712 que indica consumo 0
-#define 		kTOLERANCIA 		5	   //Diferencia con el consumo nulo a partir de la cual consideramos que se esta consumiendo algo
+#define 		kTOLERANCIA 		30	   //Diferencia con el consumo nulo a partir de la cual consideramos que se esta consumiendo algo
 #define			kPIN_SENSOR 		16	   //Pines para los sensores de corriente ACS712
 int			consumo = 		0;	   //Consumo de las farolas
 
@@ -46,8 +48,8 @@ int			estado_farola[3] = 	{kAPAGADA,kAPAGADA,kAPAGADA};   // Estados iniciales d
 // ------------------------------------------------------
 // Temperatura
 // ------------------------------------------------------
-#define 		kPIN_ONEWIRE 9
-OneWire 		oneWire(kPIN_ONEWIRE);
+#define 		PIN_ONEWIRE 9
+OneWire 		oneWire(PIN_ONEWIRE);
 DallasTemperature 	temp(&oneWire);
 DeviceAddress 		direccion_sensor_temp = {0x28, 0xA6, 0x0A, 0xEA, 0x03, 0x00, 0x00, 0xFB};
 
@@ -63,28 +65,25 @@ int			lecturas_erroneas = 	0;
 // ------------------------------------------------------
 void setup()
 {
-  // Desactivamos el watchdog
   wdt_disable();
 
-  // Inicializamos la gestion del consumo de corriente
+  int i=0;
+
   consumo=0;
   pinMode(kPIN_SENSOR,INPUT);
 
-  // Inicializamos el estado de las farolas
-  for(int i=0;i<3;i++)
+  for(i=0;i<3;i++)
   {
      estado_farola[i]=kAPAGADA;
      pinMode(pin_farola[i],OUTPUT);
      digitalWrite(pin_farola[i],estado_farola[i]); //Apagamos las farolas al iniciar
   }
 
-  // Inicializamos el buffer donde leeremos la peticiones HTTP
   num_lineas=0;
   for(pos=0;pos<kBUFFER_SIZE;pos++)
      buffer[pos]=0;
   pos=0;
 
-  // Inicializamos la sonda de temperatura, el puerto serie, y el servidor web
   temp.begin();
   temp.setResolution(direccion_sensor_temp,12);
 
@@ -93,7 +92,6 @@ void setup()
   Ethernet.begin(mac,ip,gateway,subnet);
   server.begin();
 
-  // Activamos el watchdog, con un timeout de 8 segundos
   wdt_enable(WDTO_8S);
 }
 
@@ -198,8 +196,11 @@ void procesa_peticion(EthernetClient client, char* buffer)
    client.println("<!DOCTYPE HTML>");
    client.println("<html>");
 
+#ifdef DEBUG
    client.print(buffer);
    client.println("<br/>");
+#endif
+
 
    // 0. Debug
    for (j = 1, str1 = buffer, salir=false; !salir; j++, str1 = NULL) 
@@ -214,14 +215,18 @@ void procesa_peticion(EthernetClient client, char* buffer)
         //Argumentos de la peticion
         if(j==2)
         {
+#ifdef DEBUG
            client.print("Args: [<i>"); client.println(token); client.println("</i>]<br/>");
+#endif
 
            for (str2 = token, subtoken=token; subtoken!=NULL; str2 = NULL) 
            {
              subtoken = strtok_r(str2, "?/&", &saveptr2);
              if (subtoken != NULL)
              {
+#ifdef DEBUG
                client.print(" --> "); client.println(subtoken); client.println("<br/>");
+#endif
 
                //memset(key,0,sizeof(char)*kBUFFER_SIZE);
                //memset(value,0,sizeof(char)*kBUFFER_SIZE);
@@ -241,7 +246,9 @@ void procesa_peticion(EthernetClient client, char* buffer)
 
                   if (subsubtoken == NULL || k==1)
                      break;
+#ifdef DEBUG
                   client.print("  * "); client.println(subsubtoken); client.println("<br/>");
+#endif
                }
 
 
@@ -255,7 +262,9 @@ void procesa_peticion(EthernetClient client, char* buffer)
                value=NULL;
              }
            }
+#ifdef DEBUG
            client.println("<br/>");
+#endif
         }
       }
     }
@@ -274,20 +283,18 @@ void procesa_peticion(EthernetClient client, char* buffer)
    client.println(average/num_samples);
    client.print("<br/>");
 
-   if(abs(kCONSUMO_NULO-average/num_samples)>kTOLERANCIA)
+/*   if(abs(kCONSUMO_NULO-average/num_samples)>kTOLERANCIA)
    {
-       client.print("<b>CONSUMO");
-       client.print(": </b><i>[");
+       client.print("<b>CONSUMO: </b><i>[");
        client.print(kCONSUMO_NULO-average/num_samples);
        client.println("]</i>");
    }
    else
    {
-       client.print("CONSUMO");
-       client.print(": <i>[");
+*/
+       client.print("CONSUMO:");
        client.print(kCONSUMO_NULO-average/num_samples);
-       client.println("]</i>");
-   }
+//   }
    client.println("<br/>");
 
    client.print("current");
@@ -337,6 +344,7 @@ void processData(EthernetClient client, char* key, char* value)
 {
    int valor=0;
 
+#ifdef DEBUG
    client.print("P key: [");
    if(key!=NULL)
       client.print(key);
@@ -344,6 +352,7 @@ void processData(EthernetClient client, char* key, char* value)
    if(value!=NULL)
       client.print(value);
    client.println("]<br/>");
+#endif
 
    if(key!=NULL)
    {

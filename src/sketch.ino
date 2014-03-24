@@ -285,15 +285,15 @@ void procesa_peticion(EthernetClient client, char* buffer)
 
 /*   if(abs(kCONSUMO_NULO-average/num_samples)>kTOLERANCIA)
    {
-       client.print("<b>CONSUMO: </b><i>[");
+       client.print("<b>consumo: </b><i>[");
        client.print(kCONSUMO_NULO-average/num_samples);
        client.println("]</i>");
    }
    else
    {
 */
-       client.print("CONSUMO:");
-       client.print(kCONSUMO_NULO-average/num_samples);
+       client.print("consumo:");
+       client.print(abs(kCONSUMO_NULO-average/num_samples));
 //   }
    client.println("<br/>");
 

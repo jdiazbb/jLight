@@ -278,14 +278,13 @@ void procesa_peticion(EthernetClient client, char* buffer)
       delay(2);
    }
 
-   client.print("power");
-   client.print(": ");
+   client.print("power:");
    client.println(average/num_samples);
    client.print("<br/>");
 
 /*   if(abs(kCONSUMO_NULO-average/num_samples)>kTOLERANCIA)
    {
-       client.print("<b>consumo: </b><i>[");
+       client.print("<b>consumo:</b><i>[");
        client.print(kCONSUMO_NULO-average/num_samples);
        client.println("]</i>");
    }
@@ -297,13 +296,11 @@ void procesa_peticion(EthernetClient client, char* buffer)
 //   }
    client.println("<br/>");
 
-   client.print("current");
-   client.print(": ");
+   client.print("current:");
    client.println(abs(0.0264*(average/num_samples-kCONSUMO_NULO)));
    client.println("<br/>");
 
-   client.print("watts");
-   client.print(": ");
+   client.print("watts:");
    client.println(abs((0.0264*(average/num_samples-kCONSUMO_NULO)*230)));
    client.println("<br/>");
 

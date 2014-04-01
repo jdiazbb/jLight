@@ -14,8 +14,8 @@
 // Configuracion de red
 // ------------------------------------------------------
 byte 			mac[] = 		{ 0xDE, 0xAD, 0xDE, 0xAD, 0xFE, 0xED };
-byte 			ip[] = 			{ 192, 168, 1, 202 };
-byte 			gateway[] = 		{ 192, 168, 1, 1 };
+byte 			ip[] = 			{ 192, 168, 2, 3 };
+byte 			gateway[] = 		{ 192, 168, 2, 1 };
 byte 			subnet[] = 		{ 255, 255, 255, 0 };
 
 #define 		kHTTP_PORT 		5001

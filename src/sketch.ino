@@ -43,7 +43,7 @@ int			consumo = 		0;	   //Consumo de las farolas
 #define 		kN_FAROLAS		3	   //Numero de farolas
 #define			kAPAGADA		1	   //La placa de reles funciona asi: L=ON, H=OFF
 #define			kENCENDIDA		0
-int			pin_farola[kN_FAROLAS]=	{2,3,6};   // Pines que controlaran los reles de las farolas
+int			pin_farola[kN_FAROLAS]=	{6,2,3};   // Pines que controlaran los reles de las farolas
 int			estado_farola[kN_FAROLAS] = 	{kAPAGADA,kAPAGADA,kAPAGADA};   // Estados iniciales de las farolas
 
 // ------------------------------------------------------
@@ -396,28 +396,107 @@ void processData(EthernetClient client, char* key, char* value)
       if(strcmp(key,"encender")==0)
       {
          for(int i=0;i<kN_FAROLAS;i++)
-         {
-            estado_farola[i]=0;
-            digitalWrite(pin_farola[i],estado_farola[i]);
-         }
+            encender_farola(i);
       }
 
       if(strcmp(key,"apagar")==0)
       {
          for(int i=0;i<kN_FAROLAS;i++)
+           apagar_farola(i);
+      }
+
+      if(strcmp(key,"demo")==0)
+      {
+         //Apagamos todas las farolas
+         for(int i=0;i<kN_FAROLAS;i++)
+           apagar_farola(i);
+
+         //Encendemos todas las farolas
+         for(int i=0;i<kN_FAROLAS;i++)
+           encender_farola(i);
+
+         //Apagamos todas las farolas, una cada 500ms
+         for(int i=0;i<kN_FAROLAS;i++)
          {
-            estado_farola[i]=1;
-            digitalWrite(pin_farola[i],estado_farola[i]);
+           apagar_farola(i);
+           wdt_reset();
+           delay(500);
          }
+
+         //Encendemos las farolas, y la apagamos, en sentido inverso
+         for(int i=kN_FAROLAS-1;i>=0;i--)
+         {
+           encender_farola(i);
+           wdt_reset();
+           delay(500);
+           apagar_farola(i);
+         }
+
+         // Efecto coche fantastico
+         for(int j=0;j<8;j++)
+         {
+            encender_farola(1);
+            delay(100);
+            apagar_farola(1);
+
+            encender_farola(2);
+            delay(100);
+            apagar_farola(2);
+
+            encender_farola(3);
+            delay(200);
+            apagar_farola(3);
+
+            encender_farola(2);
+            delay(100);
+            apagar_farola(2);
+
+            encender_farola(1);
+            delay(100);
+
+            wdt_reset();
+         }
+
+         //Apagamos todas las farolas
+         for(int i=0;i<kN_FAROLAS;i++)
+           apagar_farola(i);
       }
    }
 }
 
 
+
+// ------------------------------------------------------
+// Auxiliar: Apaga la farola indicada
+// ------------------------------------------------------
+void apagar_farola(int n_farola)
+{
+   if(n_farola>=0 && n_farola<kN_FAROLAS)
+   {
+     estado_farola[n_farola]=kAPAGADA;
+     digitalWrite(pin_farola[n_farola],kAPAGADA);
+   }
+}
+
+
+// ------------------------------------------------------
+// Auxiliar: Enciende la farola indicada
+// ------------------------------------------------------
+void encender_farola(int n_farola)
+{
+   if(n_farola>=0 && n_farola<kN_FAROLAS)
+   {
+     estado_farola[n_farola]=kENCENDIDA;
+     digitalWrite(pin_farola[n_farola],kENCENDIDA);
+   }
+}
+
+
+
 // ------------------------------------------------------
 // Auxiliar: Devuelve la temperatura del ATmega328 (ºmC)
 // ------------------------------------------------------
-long readInternalTemp() 
+long readInternalTemp()
 {
   long result;
   // Read temperature sensor against 1.1V reference

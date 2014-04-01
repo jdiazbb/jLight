@@ -40,10 +40,11 @@ int			consumo = 		0;	   //Consumo de las farolas
 // ------------------------------------------------------
 // Control de reles
 // ------------------------------------------------------
+#define 		kN_FAROLAS		3	   //Numero de farolas
 #define			kAPAGADA		1	   //La placa de reles funciona asi: L=ON, H=OFF
 #define			kENCENDIDA		0
-int			pin_farola[3] = 	{2,3,6};   // Pines que controlaran los reles de las farolas
-int			estado_farola[3] = 	{kAPAGADA,kAPAGADA,kAPAGADA};   // Estados iniciales de las farolas
+int			pin_farola[kN_FAROLAS]=	{2,3,6};   // Pines que controlaran los reles de las farolas
+int			estado_farola[kN_FAROLAS] = 	{kAPAGADA,kAPAGADA,kAPAGADA};   // Estados iniciales de las farolas
 
 // ------------------------------------------------------
 // Temperatura
@@ -72,7 +73,7 @@ void setup()
   consumo=0;
   pinMode(kPIN_SENSOR,INPUT);
 
-  for(i=0;i<3;i++)
+  for(i=0;i<kN_FAROLAS;i++)
   {
      estado_farola[i]=kAPAGADA;
      pinMode(pin_farola[i],OUTPUT);
@@ -389,6 +390,24 @@ void processData(EthernetClient client, char* key, char* value)
                estado_farola[2]=valor;
                digitalWrite(pin_farola[2],estado_farola[2]);
             }
+         }
+      }
+
+      if(strcmp(key,"encender")==0)
+      {
+         for(int i=0;i<kN_FAROLAS;i++)
+         {
+            estado_farola[i]=0;
+            digitalWrite(pin_farola[i],estado_farola[i]);
+         }
+      }
+
+      if(strcmp(key,"apagar")==0)
+      {
+         for(int i=0;i<kN_FAROLAS;i++)
+         {
+            estado_farola[i]=1;
+            digitalWrite(pin_farola[i],estado_farola[i]);
          }
       }
    }

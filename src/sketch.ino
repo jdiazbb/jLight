@@ -407,15 +407,15 @@ void processData(EthernetClient client, char* key, char* value)
 
       if(strcmp(key,"demo")==0)
       {
-         //Apagamos todas las farolas
+         // Apagamos todas las farolas
          for(int i=0;i<kN_FAROLAS;i++)
            apagar_farola(i);
 
-         //Encendemos todas las farolas
+         // Encendemos todas las farolas
          for(int i=0;i<kN_FAROLAS;i++)
            encender_farola(i);
 
-         //Apagamos todas las farolas, una cada 500ms
+         // Apagamos todas las farolas, una cada 500ms
          for(int i=0;i<kN_FAROLAS;i++)
          {
            apagar_farola(i);
@@ -423,7 +423,7 @@ void processData(EthernetClient client, char* key, char* value)
            delay(500);
          }
 
-         //Encendemos las farolas, y la apagamos, en sentido inverso
+         // Encendemos las farolas, y la apagamos, en sentido inverso
          for(int i=kN_FAROLAS-1;i>=0;i--)
          {
            encender_farola(i);

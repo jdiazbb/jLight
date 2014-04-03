@@ -43,6 +43,8 @@ int			consumo = 		0;	   //Consumo de las farolas
 #define 		kN_FAROLAS		3	   //Numero de farolas
 #define			kAPAGADA		1	   //La placa de reles funciona asi: L=ON, H=OFF
 #define			kENCENDIDA		0
+#define			kMAX_HORAS		10	   //Numero maximo de horas que permaneceran encendidas las farolas
+unsigned long		hora_encendido;			   //Instante en el que se encienden las luces (contador de inicio)
 int			pin_farola[kN_FAROLAS]=	{6,2,3};   // Pines que controlaran los reles de las farolas
 int			estado_farola[kN_FAROLAS] = 	{kAPAGADA,kAPAGADA,kAPAGADA};   // Estados iniciales de las farolas
 
@@ -73,6 +75,7 @@ void setup()
   consumo=0;
   pinMode(kPIN_SENSOR,INPUT);
 
+  hora_encendido=0;
   for(i=0;i<kN_FAROLAS;i++)
   {
      estado_farola[i]=kAPAGADA;
@@ -103,6 +106,8 @@ void setup()
 // ------------------------------------------------------
 void loop()
 {
+  bool encendidas=false;
+
   wdt_reset();
 
   // A) Comprobamos los comandos via HTTP
@@ -117,6 +122,22 @@ void loop()
   // B) Si se han producido demasiados errores en las lecturas de las sondas reseteamos el arduino
   if(lecturas_erroneas==6)
     softReset();
+
+  // C) Comprobamos el tiempo maximo de encendido de las farolas (1 h = 3600000 ms)
+  if(hora_encendido!=0 && abs(millis()-hora_encendido)>=kMAX_HORAS*3600000)
+  {
+    for(int i=0;i<kN_FAROLAS;i++)
+      apagar_farola(i);
+    hora_encendido=0;
+  }
+
+  // Si se ha encendido una farola y no se ha activado el contador de tiempo maximo de encendido, lo activamos
+  if(hora_encendido==0)
+  {
+     for(int i=0;i<kN_FAROLAS;i++)
+        if(estado_farola[i]==kENCENDIDA)
+           hora_encendido=millis();
+  }
 }
 
 

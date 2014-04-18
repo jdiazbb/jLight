@@ -25,6 +25,12 @@ int 			pos;
 #define 		kBUFFER_SIZE 		255
 char 			buffer[kBUFFER_SIZE];
 
+unsigned long		ultima_conexion;		   // instante de la ultima conexion de red correcta
+unsigned long		conexion_actual;		   // instante de la conexion actual
+#define			kTIMEOUT_JDOMO		600	   // segundos que puede permanecer el sistema sin que le lleguen conexiones desde el nodo central
+#define 		kPIN_PLC		7	   // pin que controla el rele del PLC
+int			num_errores_conexion;		   // numero de errores de timeout desde la ultima consulta de errores por la web
+
 
 // ------------------------------------------------------
 // Control de consumo
@@ -93,6 +99,10 @@ void setup()
 
   Serial.begin(9600);
 
+  num_errores_conexion=0;
+  ultima_conexion=millis();
+  conexion_actual=ultima_conexion;
+  pinMode(kPIN_PLC,OUTPUT);			//Por defecto esta normalmente cerrado (permite que funcione el PLC)
   Ethernet.begin(mac,ip,gateway,subnet);
   server.begin();
 
@@ -114,14 +124,31 @@ void loop()
   EthernetClient client = server.available();
   if(client)
   {
+     ultima_conexion=conexion_actual;
+     conexion_actual=millis();
+
      wdt_reset();
      readHttp(client,buffer);
      wdt_reset();
   }
 
-  // B) Si se han producido demasiados errores en las lecturas de las sondas reseteamos el arduino
+  // B1) Si se han producido demasiados errores en las lecturas de las sondas reseteamos el arduino o
   if(lecturas_erroneas==6)
     softReset();
+
+  // B2) Si se ha cumplido el tiempo maximo sin conexiones desde el nodo central, suponemos que el PLC se ha bloqueado y lo reiniciamos
+  //     ademas, si la diferencia entre los dos instantes es demasiado alta, sera porque ha habido un overflow en millis y lo ignoramos
+  if(abs(ultima_conexion-conexion_actual)>kTIMEOUT_JDOMO*1000*3)
+    ultima_conexion=conexion_actual=millis();
+  else if(abs(ultima_conexion-conexion_actual)>kTIMEOUT_JDOMO*1000)
+  {
+     digitalWrite(kPIN_PLC,HIGH);
+     delay(500);
+     digitalWrite(kPIN_PLC,LOW);
+
+     ultima_conexion=conexion_actual=millis();
+     num_errores_conexion++;
+  }
 
   // C) Comprobamos el tiempo maximo de encendido de las farolas (1 h = 3600000 ms)
   if(hora_encendido!=0 && abs(millis()-hora_encendido)>=kMAX_HORAS*3600000)
@@ -304,18 +331,8 @@ void procesa_peticion(EthernetClient client, char* buffer)
    client.println(average/num_samples);
    client.print("<br/>");
 
-/*   if(abs(kCONSUMO_NULO-average/num_samples)>kTOLERANCIA)
-   {
-       client.print("<b>consumo:</b><i>[");
-       client.print(kCONSUMO_NULO-average/num_samples);
-       client.println("]</i>");
-   }
-   else
-   {
-*/
-       client.print("consumo:");
-       client.print(abs(kCONSUMO_NULO-average/num_samples));
-//   }
+   client.print("consumo:");
+   client.print(abs(kCONSUMO_NULO-average/num_samples));
    client.println("<br/>");
 
    client.print("current:");
@@ -350,6 +367,10 @@ void procesa_peticion(EthernetClient client, char* buffer)
 
    client.print("errores_sensor:");
    client.println(lecturas_erroneas);
+   client.println("<br/>");
+
+   client.print("errores_timeout_jdomo:");
+   client.println(num_errores_conexion);
    client.println("<br/>");
 
    client.println("</html>");
